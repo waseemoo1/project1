@@ -1,0 +1,49 @@
+scalar Upload
+type User {
+  _id: ID!
+  name: String!
+  email: String!
+  password: String
+  age: Int
+  posts: [Post!]!
+}
+
+input UserInputData {
+  email: String!
+  name: String!
+  password: String!
+  age: Int
+}
+
+type AuthData {
+  token: String!
+  user: User!
+}
+
+input inputLogin{
+  email:String!
+  password:String!
+}
+
+type Query {
+  login(data:inputLogin!): AuthData!
+  getMe: User!
+  hello: String
+}
+
+ type File {
+   success: String!
+   message: String!
+   mimetype: String
+   encoding: String
+   filename: String
+   location: String
+  }
+
+type Mutation {
+  logout: Boolean!
+  logoutAll: Boolean!
+  createUser(data: UserInputData!): User!
+  singleUpload(file: Upload!): File!
+  test(data: String!): String!
+}
