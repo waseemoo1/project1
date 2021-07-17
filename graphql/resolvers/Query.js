@@ -61,6 +61,23 @@ module.exports = {
                 return comments;
             }
         ),
+        getCommentForPost: combineResolvers(
+            checkAuth,
+            async function (parent, { id }, ctx, info) {
+               
+                let post = await Post.findOne({ _id: id });
+          
+                if (!post) {
+                  const errors = new Error("Post not found");
+                  errors.code = 404;
+                  throw errors;
+                }
+
+                const comments = await Post.findOne({ _id: id }).populate('comments')
+          
+                return comments.comments;
+              }
+        ),
         stories: combineResolvers(
             checkAuth,
             async function (parent, args, ctx, info) {

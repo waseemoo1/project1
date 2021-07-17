@@ -51,12 +51,12 @@ const userSchema = mongoose.Schema(
       default: "pending"
     }
     ,
-    tokens:{
+    tokens: {
       type: [String],
       required: true
     },
   },
-  { timestamps: true , toObject: { virtuals: true } }
+  { timestamps: true, toObject: { virtuals: true } }
 );
 
 userSchema.methods.generateAuthToken = async function () {
@@ -125,12 +125,21 @@ function validateUser(user) {
 
 function validateLogin(userInput) {
   const schema = {
-      email: Joi.string().min(5).max(255).required().email({ tlds: { allow: ['com', 'net'] } }),
-      password: Joi.string().min(5).max(255).required()
+    email: Joi.string().min(5).max(255).required().email({ tlds: { allow: ['com', 'net'] } }),
+    password: Joi.string().min(5).max(255).required()
   }
   return Joi.object(schema).validate(userInput);
+}
+
+function validateResetPassword(resetPasswordInput) {
+  const schema = {
+    oldPassword: Joi.string().min(5).max(255).required(),
+    newPassword: Joi.string().min(5).max(255).required()
+  }
+  return Joi.object(schema).validate(resetPasswordInput);
 }
 
 exports.User = User;
 exports.validateUser = validateUser;
 exports.validateLogin = validateLogin;
+exports.validateResetPassword = validateResetPassword;

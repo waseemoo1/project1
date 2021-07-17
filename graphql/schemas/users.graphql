@@ -15,14 +15,14 @@ input UserInputData {
   age: Int
 }
 
-type AuthData {
-  token: String!
-  user: User!
-}
-
 input inputLogin{
   email:String!
   password:String!
+}
+
+type AuthData {
+  token: String!
+  user: User!
 }
 
 type Query {
@@ -46,4 +46,5 @@ type Mutation {
   createUser(data: UserInputData!): User!
   singleUpload(file: Upload!): File!
   test(data: String!): String!
+  resetPassword(oldPassword: String! , newPassword: String!): Boolean!
 }

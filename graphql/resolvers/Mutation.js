@@ -1,10 +1,11 @@
 const _ = require("lodash");
 const crypto = require('crypto');
 const config = require('config');
+const bcrypt = require('bcrypt');
 
-const { User, validateUser } = require("../../models/user");
+const { User, validateUser , validateResetPassword} = require("../../models/user");
 const { Post, validatePost } = require("../../models/post");
-const { Comment, validateComment , validateComment2 } = require("../../models/comment");
+const { Comment, validateComment, validateComment2 } = require("../../models/comment");
 const { Code } = require('../../models/secretCode');
 const { Story } = require('../../models/story');
 
@@ -329,9 +330,28 @@ module.exports = {
         return result ? true : false;
       }),
 
+    resetPassword: combineResolvers(
+      checkAuth,
+      validate(validateResetPassword),
+      async function (parent, args, ctx, info) { 
+        console.log(args);  
+
+        let user = ctx.req.user;
+
+        const validPassword = await bcrypt.compare(args.oldPassword , user.password);
+        if (!validPassword) throw new Error("Invalid password.");
+
+        user.password = args.newPassword;
+        await user.save()
+
+        return true;
+
+      }),
+
     test: function (parent, { data }, ctx, info) {
       return data.toString();
     },
+
     singleUpload: async (parent, args) => {
       console.log('upload file');
       console.log(args);
@@ -343,5 +363,6 @@ module.exports = {
         return null;
       }
     }
+
   },
 };
