@@ -16,12 +16,11 @@ var readHTMLFile = function(path, callback) {
 };
 module.exports = async function sendEmail(email, URL) {
   const Transport = nodemailer.createTransport({
-    host:'smtp.mailtrap.io',
-    port:2525,
+    service: 'hotmail',
     auth: {
-      user:'e5b8d557751145',
-      pass: '4b67c8d2cfc309',
-    },
+        user: config.get('email'),
+        pass: config.get('password')
+    }
   });
 
   readHTMLFile('D:/fullstack/forGithub/project1-master/util/forConfirmEmail/indexForConfirm.html',  function(err, html) {
