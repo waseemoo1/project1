@@ -3,32 +3,51 @@ scalar Upload
 
 type Post {
   _id: ID!
-  title: String!
   description: String!
-  imageUrl: String
-  published: Boolean
+  filesUrl: [String]
   createdAt: Date!
   updatedAt: Date!
   author: User!
+
+  likes: [User!]!
+  disLikes: [User!]!
+  loves: [User!]!
+
+  likesCount: Int!
+  lovesCount: Int!
+  disLikeCount: Int!
+
+  myReaction: Reactions!
+}
+
+enum Reactions {
+  LIKE
+  DISLIKE
+  LOVE
+  NONE
 }
 
 input PostInputData {
-  title: String!
   description: String!
+  filesUrl: [Upload]
 }
 
 input UpdatePostInput {
-  title: String
-  description: String
-  published: Boolean
+  description: String!
+  filesUrl: [Upload]
 }
 
 type Mutation {
-  createPost(data: PostInputData! , image: Upload): Post!
-  updatePost(id: ID!, data: UpdatePostInput! , image: Upload): Post!
+  createPost(data: PostInputData!): Post!
+  updatePost(id: ID!, data: UpdatePostInput!): Post!
   deletePost(id: ID!): Post!
+
+  likePost(postId: ID!): Post!
+  disLikePost(postId: ID!): Post!
+  lovePost(postId: ID!): Post!
 }
 
 type Query {
   getPosts: [Post!]!
+  getPostsOnFriends: [Post!]!
 }

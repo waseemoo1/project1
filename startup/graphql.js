@@ -1,75 +1,71 @@
-const { ApolloServer , PubSub} = require('apollo-server-express');
-
-const path = require('path');
-const http = require('http');
-
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
-
-const _ = require('lodash');
-
-const MutationResolver = require('../graphql/resolvers/Mutation');
-const QueryResolver = require('../graphql/resolvers/Query');
-const SubscriptionResolver = require('../graphql/resolvers/Subscription');
-const UserResolver = require('../graphql/resolvers/User');
-const PostResolver = require('../graphql/resolvers/Post');
-const StoryResolver = require('../graphql/resolvers/Story');
-const CommentResolver = require('../graphql/resolvers/Comment');
-
-const resolvers = _.merge(MutationResolver, QueryResolver
-    , UserResolver , PostResolver , StoryResolver 
-    , SubscriptionResolver , CommentResolver);
-
-const typesArray = loadFilesSync(path.join(__dirname, '../graphql/schemas'), { extensions: ['graphql'] });
-const typeDefs = mergeTypeDefs(typesArray);
-
-const pubsub = new PubSub();
-
+const { ApolloServer, PubSub } = require("apollo-server-express");
+const { execute, subscribe } = require("graphql");
+const { createServer } = require("http");
+const { SubscriptionServer } = require("subscriptions-transport-ws");
+const config = require("config");
+const schema = require('../graphql/schema')
+const forContextSup = require('../middleware/forContextSup')
 module.exports = function (app) {
+  const pubsub = new PubSub();
+  const server = new ApolloServer({
+    schema,
+    context: ({ req, res }) => {
+      return { req: req, res: res, pubsub };
+    },
+    formatError: (err) => {
+      if (!err.originalError) {
+        console.log(err);
+        return err;
+      }
 
-    const server = new ApolloServer({
-        typeDefs,
-        resolvers,
-        context: ({req , res}) => {
-            return {req: req , res: res , pubsub}
-        },
-        formatError: (err) => {
-            if (!err.originalError) {
-                console.log(err);
-                return err;
-            }
-            const data = err.originalError.data;
-            const message = err.message || 'An error occured.!';
-            const code = err.originalError.code || 500;
-            return { message: message, status: code, data: data };
-        },
-        subscriptions: {
-            onConnect: async (connectionParams, webSocket, context) => {
-                console.log("xxx")
-                console.log(connectionParams)
-            },
-            onDisconnect: (websocket, context) => {
-                console.log("WS Disconnected!")
-            },
-            path: "/Subscription"
-          },
-        uploads: false
+      const data = err.originalError.data;
+      const message = err.message || "An error occured.!";
+      const code = err.originalError.code || 500;
+      return { message: message, status: code, data: data };
+    },
+    uploads: false,
+  });
+
+  server.applyMiddleware({ app });
+
+  const httpServer = createServer(app);
+
+  SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+      async onConnect(connectionParams) {
+        if (connectionParams.Authorization) {
+          let user = await forContextSup(connectionParams);
+          return {user , pubsub }
+        }
+        throw new Error("Missing auth token!");
+      },
+    },
+    { server: httpServer }
+  );
+
+  const PORT = process.env.PORT || 4000;
+  const mongoose = require("mongoose");
+  const db = config.get("db");
+  mongoose
+    .connect(db, {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useUnifiedTopology: true,
+    })
+    .then((res) => {
+      httpServer.listen(PORT, () => {
+        console.log(
+          `🚀 Query endpoint ready at http://localhost:${PORT}${server.graphqlPath}`
+        );
+        console.log(
+          `🚀 Subscription endpoint ready at ws://localhost:${PORT}${server.graphqlPath}`
+        );
+      });
+    })
+    .catch((err) => {
+      console.error("Error while connecting to MongoDB", err);
     });
-
-    server.applyMiddleware({ app });
-
-    const httpServer = http.createServer(app);
-
-    server.installSubscriptionHandlers(httpServer);
-
-    const port = process.env.PORT || 3000;
-    
-    httpServer.listen(port, () => {
-      console.log(
-        `🚀 Server ready at http://localhost:${port}${server.graphqlPath}`,
-      );
-      console.log(
-        `🚀 Subscriptions ready at ws://localhost:${port}${server.subscriptionsPath}`,
-      );
-    });
-}
+};

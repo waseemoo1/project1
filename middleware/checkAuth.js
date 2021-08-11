@@ -1,10 +1,11 @@
-const { skip } = require('graphql-resolvers');
+const { createResolver } = require('apollo-resolvers');
 
-module.exports = (parent, data , ctx) =>{
-        if (!ctx.req.isAuth) {
-            const errors = new Error("Authentication falild");
-            errors.code = 401;
-            throw errors;
-          }
-          skip
+module.exports = createResolver(
+  (parent, args, ctx, error) => {
+    if (!ctx.req.isAuth) {
+      const errors = new Error("Authentication falild");
+      errors.code = 401;
+      throw errors;
     }
+  }
+);

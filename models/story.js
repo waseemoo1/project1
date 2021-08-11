@@ -14,11 +14,6 @@ const storySchema = mongoose.Schema(
         viewers: {
             type: [mongoose.Schema.Types.ObjectId],
         },
-        dateCreated: {
-            type: Date,
-            default: Date.now(),
-            expires: 60 * 60 * 24,
-        },
     }
     , { timestamps: true }
 );

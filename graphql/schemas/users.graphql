@@ -3,16 +3,43 @@ type User {
   _id: ID!
   name: String!
   email: String!
-  password: String
+  password: String!
+  imageUrl: String
   age: Int
   posts: [Post!]!
+
+  mutualFriends: MutualFriendsPayload!
+  friendRequestsReceived: [User]
+  friends: FriendsPayload!
+  friendRequestsSent: [User]
+
+  isFriends: Boolean!
+  doISentHimFriendRequest: Boolean!
+  doHeSentMeFriendRequest: Boolean!
 }
 
-input UserInputData {
+type FriendsPayload {
+  friendsData: [User]!
+  friendsCount: Int!
+}
+
+type MutualFriendsPayload {
+  mutualFriendsData: [User!]!
+  mutualFriendsCount: Int!
+}
+
+input UserInputDataForCreate {
   email: String!
   name: String!
   password: String!
   age: Int
+  image: Upload
+}
+
+input UserInputDataForUpdate {
+  name: String
+  age: Int
+  image: Upload
 }
 
 type AuthData {
@@ -20,30 +47,33 @@ type AuthData {
   user: User!
 }
 
-input inputLogin{
-  email:String!
-  password:String!
+input inputLogin {
+  email: String!
+  password: String!
 }
 
 type Query {
-  login(data:inputLogin!): AuthData!
+  login(data: inputLogin!): AuthData!
+  getProfile(userId: ID!): User!
   getMe: User!
   hello: String
 }
 
- type File {
-   success: String!
-   message: String!
-   mimetype: String
-   encoding: String
-   filename: String
-   location: String
-  }
-
 type Mutation {
+  singleUpload(file: Upload!): File!
   logout: Boolean!
   logoutAll: Boolean!
-  createUser(data: UserInputData!): User!
-  singleUpload(file: Upload!): File!
-  test(data: String!): String!
+
+  createUser(data: UserInputDataForCreate!): User!
+  updateUser(id: ID!, data: UserInputDataForUpdate!): User!
+  deleteUser(id: ID!): User!
+
+  acceptFriendRequest(id: ID!): User!
+  sendaFriendRequest(id: ID!): User!
+  deleteFriend(id: ID!): User!
+  rejectFriendRequest(id: ID!): User!
+  deleteFriendRequestSent(id: ID!): User!
+
+  resetPassword(oldPassword: String!, newPassword: String!): Boolean!
+
 }

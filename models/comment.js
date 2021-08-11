@@ -1,11 +1,13 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
-
 const commentSchema = mongoose.Schema(
   {
     text: {
       type: String,
       required: true,
+    },
+    fileUrl: {
+      type: String,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,27 +20,43 @@ const commentSchema = mongoose.Schema(
       ref: "Post",
     },
   },
-  { timestamps: true }
+  { timestamps: true, toObject: { virtuals: true } }
 );
+
+commentSchema.statics.validateCreateComment = (comment) => {
+  const schema = {
+    fileUrl:Joi.any(),
+    text: Joi.string().required(),
+    postId: Joi.objectId(),
+  };
+
+  const { error } = Joi.object(schema).validate(comment);
+
+  if (error) {
+    const errors = new Error("invalid input");
+    errors.data = error.details[0].message;
+    errors.code = 400;
+    throw errors;
+  }
+};
+
+commentSchema.statics.validateUpdateComment = (comment) => {
+  const schema = {
+    fileUrl:Joi.any(),
+    text: Joi.string().required(),
+  };
+
+  const { error } = Joi.object(schema).validate(comment);
+
+  if (error) {
+    const errors = new Error("invalid input");
+    errors.data = error.details[0].message;
+    errors.code = 400;
+    throw errors;
+  }
+};
+
 
 const Comment = mongoose.model("Comment", commentSchema);
 
-function validateComment(comment) {
-  const schema = {
-    text: Joi.string().required(),
-    post: Joi.required()
-  }
-  return Joi.object(schema).validate(comment);
-}
-
-function validateComment2(comment) {
-  const schema = {
-    text: Joi.string().required(),
-  }
-  return Joi.object(schema).validate(comment);
-}
-
 exports.Comment = Comment;
-
-module.exports.validateComment2 = validateComment2;
-module.exports.validateComment = validateComment;
