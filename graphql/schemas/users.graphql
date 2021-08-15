@@ -52,6 +52,11 @@ input inputLogin {
   password: String!
 }
 
+type AuthData {
+  token: String!
+  user: User!
+}
+
 type Query {
   login(data: inputLogin!): AuthData!
   getProfile(userId: ID!): User!

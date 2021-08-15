@@ -240,4 +240,12 @@ userSchema.pre("remove", async function (next) {
 
 const User = mongoose.model("User", userSchema);
 
+function validateResetPassword(resetPasswordInput) {
+  const schema = {
+    oldPassword: Joi.string().min(5).max(255).required(),
+    newPassword: Joi.string().min(5).max(255).required()
+  }
+  return Joi.object(schema).validate(resetPasswordInput);
+}
+
 exports.User = User;
