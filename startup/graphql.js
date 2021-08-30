@@ -14,7 +14,6 @@ module.exports = function (app) {
     },
     formatError: (err) => {
       if (!err.originalError) {
-        console.log("fdsaf")
         console.log(err);
         return err;
       }

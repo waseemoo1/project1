@@ -15,16 +15,15 @@ var readHTMLFile = function(path, callback) {
     });
 };
 module.exports = async function sendEmail(email, URL) {
-    const Transport = nodemailer.createTransport({
-        host:'smtp.mailtrap.io',
-        port:2525,
-        auth: {
-          user:'e5b8d557751145',
-          pass: '4b67c8d2cfc309',
-        },
-      });
+  const Transport = nodemailer.createTransport({
+    service: 'hotmail',
+    auth: {
+        user: config.get('email'),
+        pass: config.get('password')
+    }
+  });
 
-  readHTMLFile('./util/forConfirmEmail/indexForConfirm.html',  function(err, html) {
+  readHTMLFile('D:/fullstack/forGithub/project1-master/util/forConfirmEmail/indexForConfirm.html',  function(err, html) {
     var template = handlebars.compile(html);
     var replacements = {
          URL
