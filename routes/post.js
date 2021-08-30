@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const path = require('path');
+const {join} = require('path');
 
 router.get("/photo/:photoUrl", async (req, res, next) => {
 
     const photoUrl = req.params.photoUrl;
 
     var options = {
-        root: path.join(__dirname, '../photos/')
+        root: join(__dirname, "../public/images")
     };
 
     res.sendFile(photoUrl, options, function (err) {

@@ -1,33 +1,24 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { User } = require('../models/user');
-const { Code } = require('../models/secretCode');
-const mongoose = require('mongoose');
-
-router.get("/verify-account/:userId/:secretCode", async (req, res, next) => {
-        try {
-            const user = await User.findById(mongoose.Types.ObjectId(req.params.userId));
-
-            const code = await Code.findOne({
-                email: user.email,
-                code: req.params.secretCode,
-            });
-
-            if (!user || !code) return res.status(400).send('user not found!!!!');
-
-            await User.updateOne(
-                { email: user.email },
-                { status: "active" }
-            );
-
-            await Code.deleteMany({ email: user.email });
-
-            res.status(200).send('Your email has been verified');
-
-        } catch (err) {
-            console.log(err);
-            res.status(500).sendStatus('server error!!!');
-        }
-    });
+const { User } = require("../models/user");
+const jwt = require("jsonwebtoken");
+const config = require("config");
+router.get("/:token", async (req, res, next) => {
+  try {
+    const decoded = jwt.verify(req.params.token, config.get("jwtPrivateKey"));
+    console.log(decoded);
+    let user = await User.findById(decoded._id);
+    if (user) {
+      res.status(200).send("Your email has been verified");
+      await User.updateOne({ _id: user._id }, { confirm: true});
+      await user.save();
+    } else {
+      res.status(500).send("this token is expirein please go and make new account ");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("server error!!!");
+  }
+});
 
 module.exports = router;
